@@ -41,7 +41,7 @@ while True:
                 f"ExitPrice: {ExitPrice}\n"
                 f"PnlPercent: {pnl_percent}%\n"
                 f"PositionTestNumber: {posNum}"
-                )
+            )
             
             send_message_to_channel(Messege)
             print(f"Сообщение отправлено в канал! \nСообщение: \n{Messege}")
