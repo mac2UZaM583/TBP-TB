@@ -10,7 +10,7 @@ session = HTTP(
 )
 
 n = 0
-posNum = 2
+posNum = 3
 orderId_copy = [False]
 
 while True:
@@ -27,7 +27,22 @@ while True:
             EntryPrice = float(closedPnlPos['avgEntryPrice'])
             ExitPrice = float(closedPnlPos['avgExitPrice'])
             Leverage = int(closedPnlPos['leverage'])
-            Messege = f'🌍 Ticker: {closedPnlPos['symbol']} \nLeverage: {Leverage} \nSide: {closedPnlPos['side']} \nClosedPnl: {closedPnlPos['closedPnl']} \nEntryPrice: {EntryPrice} \nExitPrice: {ExitPrice} \nPnlPercent: {-round((((EntryPrice / ExitPrice) * 100) - 100) * Leverage, 2)}% \nPositionTestNumber: {posNum}'
+            balance_info = session.get_wallet_balance(accountType='UNIFIED', coin='USDT')
+            wallet_balance = round(float(balance_info['result']['list'][0]['coin'][0]['walletBalance']), 2)
+            pnl_percent = -round((((EntryPrice / ExitPrice) * 100) - 100) * Leverage, 2)
+
+            Messege = (
+                f"🌍 Ticker: {closedPnlPos['symbol']}\n"
+                f"Leverage: {Leverage}\n"
+                f"Side: {closedPnlPos['side']}\n"
+                f"ClosedPnl: {closedPnlPos['closedPnl']}\n"
+                f"BalanceUSDT: {wallet_balance}\n"
+                f"EntryPrice: {EntryPrice}\n"
+                f"ExitPrice: {ExitPrice}\n"
+                f"PnlPercent: {pnl_percent}%\n"
+                f"PositionTestNumber: {posNum}"
+                )
+            
             send_message_to_channel(Messege)
             print(f"Сообщение отправлено в канал! \nСообщение: \n{Messege}")
 
