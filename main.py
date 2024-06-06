@@ -12,8 +12,6 @@ session = HTTP(
 
 n = 0
 orderId_copy = [False]
-with open('posNum.txt', 'r', encoding='utf-8') as f:
-    posNum = int(f.read())
 
 while True:
     try:
@@ -24,6 +22,8 @@ while True:
         
         if orderId != orderId_copy[0]:
             orderId_copy.clear()
+            with open('posNum.txt', 'r', encoding='utf-8') as f:
+                posNum = int(f.read())
             posNum = str(posNum + 1)
             orderId_copy.append(orderId)
             EntryPrice = float(closedPnlPos['avgEntryPrice'])
