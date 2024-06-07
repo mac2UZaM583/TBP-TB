@@ -11,7 +11,8 @@ session = HTTP(
 
 
 n = 0
-orderId_copy = [False]
+with open('orderId.txt', 'r', encoding='utf-8') as f:
+    orderId_copy = [f.read()]
 
 while True:
     try:
@@ -45,11 +46,14 @@ while True:
                 f"PnlPercent: {pnl_percent}%\n"
                 f"PositionTestNumber: {posNum}"
             )
-            
             send_message_to_channel(Messege)
             print(f"Сообщение отправлено в канал! \nСообщение: \n{Messege}")
+            
+            # Сохраняем значения вне кода
             with open('posNum.txt', 'w', encoding='utf-8') as f:
                 f.write(posNum)
+            with open('orderId.txt', 'w', encoding='utf-8') as f:
+                f.write(orderId)
 
         time.sleep(5)
     except Exception as er:
