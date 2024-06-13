@@ -2,9 +2,9 @@ from pybit.unified_trading import HTTP
 from keys import api_key, api_secret
 from bot import send_message_to_channel
 import time
+from datetime import datetime
 
 session = HTTP(
-    demo=True,
     api_key=api_key,
     api_secret=api_secret
 )
@@ -29,8 +29,8 @@ while True:
             orderId_copy.append(orderId)
             EntryPrice = float(closedPnlPos['avgEntryPrice'])
             ExitPrice = float(closedPnlPos['avgExitPrice'])
-            Leverage = int(closedPnlPos['leverage'])
-            balance_info = session.get_wallet_balance(accountType='UNIFIED', coin='USDT')
+            Leverage = float(closedPnlPos['leverage'])
+            balance_info = session.get_wallet_balance(accountType='CONTRACT', coin='USDT')
             wallet_balance = round(float(balance_info['result']['list'][0]['coin'][0]['walletBalance']), 2)
             pnl_percent_None = round((((EntryPrice / ExitPrice) * 100) - 100) * Leverage, 2)
             pnl_percent = -pnl_percent_None if closedPnlPos['side'] == 'Sell' else pnl_percent_None
@@ -57,4 +57,5 @@ while True:
 
         time.sleep(5)
     except Exception as er:
-        print(er)
+        with open('errors.txt', 'a', encoding='utf-8') as f:
+            f.write(f"{datetime.now()} | {er}\n\n")
