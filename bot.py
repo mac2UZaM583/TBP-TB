@@ -1,11 +1,12 @@
 import telebot
-from apitoken import token as API_TOKEN, channel_id as CHANNEL_ID
+from apitoken import token, channel_id
+import traceback
 
-# Создаем экземпляр бота
-bot = telebot.TeleBot(API_TOKEN)
+bot = telebot.TeleBot(token)
 
 def send_message_to_channel(message_text):
     try:
-        bot.send_message(CHANNEL_ID, message_text)
-    except Exception as e:
+        bot.send_message(channel_id, message_text)
+    except:
+        e = traceback.format_exc()
         print(f"Ошибка при отправке сообщения: {e}")

@@ -1,61 +1,87 @@
 from pybit.unified_trading import HTTP
 from keys import api_key, api_secret
 from bot import send_message_to_channel
+import itertools
 import time
 from datetime import datetime
+import traceback
 
 session = HTTP(
+    # demo=True,
     api_key=api_key,
     api_secret=api_secret
 )
 
-
-n = 0
+counter = itertools.count(start=0, step=1)
 with open('orderId.txt', 'r', encoding='utf-8') as f:
     orderId_copy = [f.read()]
 
-while True:
-    try:
-        n += 1
-        print(f'Запрос номер {n}')
-        closedPnlPos = session.get_closed_pnl(category='linear', page=1)['result']['list'][0]
-        orderId = closedPnlPos['orderId']
-        
-        if orderId != orderId_copy[0]:
-            orderId_copy.clear()
-            with open('posNum.txt', 'r', encoding='utf-8') as f:
-                posNum = int(f.read())
-            posNum = str(posNum + 1)
-            orderId_copy.append(orderId)
-            EntryPrice = float(closedPnlPos['avgEntryPrice'])
-            ExitPrice = float(closedPnlPos['avgExitPrice'])
-            Leverage = float(closedPnlPos['leverage'])
-            balance_info = session.get_wallet_balance(accountType='CONTRACT', coin='USDT')
-            wallet_balance = round(float(balance_info['result']['list'][0]['coin'][0]['walletBalance']), 2)
-            pnl_percent_None = round((((EntryPrice / ExitPrice) * 100) - 100) * Leverage, 2)
-            pnl_percent = -pnl_percent_None if closedPnlPos['side'] == 'Sell' else pnl_percent_None
+def get_info(closed_pnl_pos, order_id):
+    orderId_copy.clear()
+    position_num = str(position_num + 1)
+    orderId_copy.append(order_id)
+    entry_price = float(closed_pnl_pos['avgEntryPrice'])
+    exit_price = float(closed_pnl_pos['avgExitPrice'])
+    leverage = float(closed_pnl_pos['leverage'])
+    balance_info = session.get_wallet_balance(accountType='CONTRACT', coin='USDT')
+    wallet_balance = round(float(balance_info['result']['list'][0]['coin'][0]['walletBalance']), 2)
+    pnl_percent_none = round((((entry_price / exit_price) * 100) - 100) * leverage, 2)
+    pnl_percent = -pnl_percent_none if closed_pnl_pos['side'] == 'Sell' else pnl_percent_none
+    return (closed_pnl_pos['symbol'], 
+            leverage, 
+            closed_pnl_pos['side'], 
+            closed_pnl_pos['closedPnl'], 
+            wallet_balance, 
+            entry_price, 
+            exit_price, 
+            pnl_percent,
+            position_num)
 
-            Messege = (
-                f"🌍 Ticker: {closedPnlPos['symbol']}\n"
-                f"Leverage: {Leverage}\n"
-                f"Side: {closedPnlPos['side']}\n"
-                f"ClosedPnl: {closedPnlPos['closedPnl']}\n"
-                f"BalanceUSDT: {wallet_balance}\n"
-                f"EntryPrice: {EntryPrice}\n"
-                f"ExitPrice: {ExitPrice}\n"
-                f"PnlPercent: {pnl_percent}%\n"
-                f"PositionTestNumber: {posNum}"
-            )
-            send_message_to_channel(Messege)
-            print(f"Сообщение отправлено в канал! \nСообщение: \n{Messege}")
+def get_messege(symbol, leverage, side, closed_pnl, wallet_balance, entry_price, exit_price, pnl_percent, position_num):
+    messege = (
+                f"🌍 Ticker: {symbol}\n"
+                f"Leverage: {leverage}\n"
+                f"Side: {side}\n"
+                f"Closed PNL: {closed_pnl}\n"
+                f"Balance USDT: {wallet_balance}\n"
+                f"Entry price: {entry_price}\n"
+                f"Exit price: {exit_price}\n"
+                f"PNL percent: {pnl_percent}%\n"
+                f"Position number: {position_num}"
+                f'Time: {datetime.now()}'
+)
+    return messege
+
+def save(position_num, order_id):
+    with open('position_num.txt', 'w', encoding='utf-8') as f:
+        f.write(position_num)
+    with open('orderId.txt', 'w', encoding='utf-8') as f:
+        f.write(order_id)
+
+def main():
+    while True:
+        try:
+            '''PRE ↓
+            '''
+            print(f'Запрос {next(counter)}')
+            closed_pnl_pos = session.get_closed_pnl(category='linear', page=1)['result']['list'][0]
+            order_id = closed_pnl_pos['orderId']
+
+            '''POST ↓
+            '''
+            if order_id != orderId_copy[0]:
+                with open('position_num.txt', 'r', encoding='utf-8') as f:
+                    position_num = int(f.read())
+                info = get_info(closed_pnl_pos=closed_pnl_pos, order_id=order_id)
+                messege = get_messege(*info)
+                send_message_to_channel(messege)
+                save(position_num=position_num, order_id=order_id)
+                print(f"Сообщение отправлено в канал! \nСообщение: \n{messege}")
             
-            # Сохраняем значения вне кода
-            with open('posNum.txt', 'w', encoding='utf-8') as f:
-                f.write(posNum)
-            with open('orderId.txt', 'w', encoding='utf-8') as f:
-                f.write(orderId)
+            time.sleep(5)
+        except:
+            traceback.print_exc()
+            time.sleep(5)
 
-        time.sleep(5)
-    except Exception as er:
-        with open('errors.txt', 'a', encoding='utf-8') as f:
-            f.write(f"{datetime.now()} | {er}\n\n")
+if __name__ == '__main__':
+    main()
