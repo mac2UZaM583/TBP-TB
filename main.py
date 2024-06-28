@@ -17,7 +17,6 @@ with open('orderId.txt', 'r', encoding='utf-8') as f:
     orderId_copy = [f.read()]
 
 def get_info(closed_pnl_pos, order_id):
-    orderId_copy.clear()
     position_num = str(position_num + 1)
     orderId_copy.append(order_id)
     entry_price = float(closed_pnl_pos['avgEntryPrice'])
@@ -72,6 +71,7 @@ def main():
             if order_id != orderId_copy[0]:
                 with open('position_num.txt', 'r', encoding='utf-8') as f:
                     position_num = int(f.read())
+                orderId_copy.clear()
                 info = get_info(closed_pnl_pos=closed_pnl_pos, order_id=order_id)
                 messege = get_messege(*info)
                 send_message_to_channel(messege)
