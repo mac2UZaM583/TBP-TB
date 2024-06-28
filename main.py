@@ -17,8 +17,6 @@ with open('orderId.txt', 'r', encoding='utf-8') as f:
     orderId_copy = [f.read()]
 
 def get_info(closed_pnl_pos, order_id):
-    position_num = str(position_num + 1)
-    orderId_copy.append(order_id)
     entry_price = float(closed_pnl_pos['avgEntryPrice'])
     exit_price = float(closed_pnl_pos['avgExitPrice'])
     leverage = float(closed_pnl_pos['leverage'])
@@ -33,8 +31,7 @@ def get_info(closed_pnl_pos, order_id):
             wallet_balance, 
             entry_price, 
             exit_price, 
-            pnl_percent,
-            position_num)
+            pnl_percent)
 
 def get_messege(symbol, leverage, side, closed_pnl, wallet_balance, entry_price, exit_price, pnl_percent, position_num):
     messege = (
@@ -46,13 +43,13 @@ def get_messege(symbol, leverage, side, closed_pnl, wallet_balance, entry_price,
                 f"Entry price: {entry_price}\n"
                 f"Exit price: {exit_price}\n"
                 f"PNL percent: {pnl_percent}%\n"
-                f"Position number: {position_num}"
+                f"Position number: {position_num}\n"
                 f'Time: {datetime.now()}'
 )
     return messege
 
 def save(position_num, order_id):
-    with open('position_num.txt', 'w', encoding='utf-8') as f:
+    with open('posNum.txt', 'w', encoding='utf-8') as f:
         f.write(position_num)
     with open('orderId.txt', 'w', encoding='utf-8') as f:
         f.write(order_id)
@@ -69,11 +66,13 @@ def main():
             '''POST ↓
             '''
             if order_id != orderId_copy[0]:
-                with open('position_num.txt', 'r', encoding='utf-8') as f:
+                with open('posNum.txt', 'r', encoding='utf-8') as f:
                     position_num = int(f.read())
                 orderId_copy.clear()
+                position_num = str(position_num + 1)
+                orderId_copy.append(order_id)
                 info = get_info(closed_pnl_pos=closed_pnl_pos, order_id=order_id)
-                messege = get_messege(*info)
+                messege = get_messege(*info, position_num=position_num)
                 send_message_to_channel(messege)
                 save(position_num=position_num, order_id=order_id)
                 print(f"Сообщение отправлено в канал! \nСообщение: \n{messege}")
