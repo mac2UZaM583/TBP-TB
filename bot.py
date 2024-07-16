@@ -1,12 +1,11 @@
 import telebot
-from apitoken import token, channel_id
+from settings__ import files_content
 import traceback
 
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(files_content['TOKEN'])
 
 def send_message_to_channel(message_text):
     try:
-        bot.send_message(channel_id, message_text)
+        bot.send_message(files_content['ID'], message_text)
     except:
-        e = traceback.format_exc()
-        print(f"Ошибка при отправке сообщения: {e}")
+        traceback.print_exc()
