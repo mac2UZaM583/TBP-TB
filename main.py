@@ -4,6 +4,8 @@ from bot import send_message_to_channel
 from itertools import count
 from time import sleep
 import traceback
+import datetime
+import schedule
 from pprint import pprint
 
 session = HTTP(
@@ -36,7 +38,46 @@ def get_info(position_closed):
         f'Time: {time}\n' 
     )
 
+def g_pnl_closed():
+    timestamp_ms = int(datetime.datetime.combine(datetime.datetime.now().date(), datetime.time()).timestamp() * 1000)
+    pnl_closed_all = []
+    cursor = None
+    while True:
+        pnl_closed = session.get_closed_pnl(
+            category='linear', 
+            endTime=str(timestamp_ms), 
+            startTime=str(timestamp_ms - 86_400_000),
+            limit=100,
+            cursor=cursor
+        )['result']
+        cursor = pnl_closed["nextPageCursor"]
+        pnl_closed_all.extend(pnl_closed["list"])
+        if len(pnl_closed) < 100 and cursor == "":
+            return pnl_closed_all
+
+def s_total_info():
+    pnl_closed = g_pnl_closed()
+    balance = float(session.get_wallet_balance(
+        accountType=files_content['ACCOUNT_TYPE'].upper(), 
+        coin='USDT'
+    )['result']['list'][0]['coin'][0]['walletBalance'])
+    balance_ = balance
+    success_rate = []
+    for pnl in pnl_closed:
+        pnl_ = float(pnl["closedPnl"])
+        balance_ -= pnl_
+        if pnl_ > 0:
+            success_rate.append(pnl)
+    len_total_orders = len(pnl_closed)
+    send_message_to_channel(
+        f"📑 Percentage of changes: ~{round((balance / balance_ - 1) * 100, 3)}%\n"
+        f"Success rate: {round(len_total_orders / len(success_rate) * 100, 3)}%\n"
+        f"Total orders: {len_total_orders}\n"
+        f"Balance: {round(balance, 3)}$"
+    )
+
 def main():
+    schedule.every().day.at("00:02").do(s_total_info)
     while True:
         try:
             print(next(counter))
@@ -49,6 +90,7 @@ def main():
                     f.write(order_id_position)
                 with open('ORDER_ID.txt', 'r', encoding='utf-8') as f:
                     order_id = f.read()
+            schedule.run_pending()
             sleep(5)
         except:
             traceback.print_exc()
