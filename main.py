@@ -70,7 +70,8 @@ def s_total_info():
             success_rate.append(pnl)
     len_total_orders = len(pnl_closed)
     send_message_to_channel(
-        f"📑 Percentage of changes: ~{round((balance / balance_ - 1) * 100, 3)}%\n"
+        f"📑 Earned: {round(balance - balance_, 3)}$\n"
+        f"Percentage of changes: ~{round((balance / balance_ - 1) * 100, 3)}%\n"
         f"Success rate: {round(len_total_orders / len(success_rate) * 100, 3)}%\n"
         f"Total orders: {len_total_orders}\n"
         f"Balance: {round(balance, 3)}$"
@@ -98,3 +99,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # s_total_info()
