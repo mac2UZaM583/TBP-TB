@@ -72,7 +72,7 @@ def s_total_info():
     send_message_to_channel(
         f"📑 Earned: {round(balance - balance_, 3)}$\n"
         f"Percentage of changes: ~{round((balance / balance_ - 1) * 100, 3)}%\n"
-        f"Success rate: {round(len_total_orders / len(success_rate) * 100, 3)}%\n"
+        f"Success rate: {round(len(success_rate) / len_total_orders * 100, 3)}%\n"
         f"Total orders: {len_total_orders}\n"
         f"Balance: {round(balance, 3)}$"
     )
