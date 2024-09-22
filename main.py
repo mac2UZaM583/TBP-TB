@@ -57,28 +57,30 @@ def g_pnl_closed():
 
 def s_total_info():
     pnl_closed = g_pnl_closed()
-    balance = float(session.get_wallet_balance(
+    success_rate = [
+        pnl
+        for pnl in pnl_closed    
+        if float(pnl["closedPnl"]) > 0
+    ]
+    balance_now = float(session.get_wallet_balance(
         accountType=files_content['ACCOUNT_TYPE'].upper(), 
         coin='USDT'
     )['result']['list'][0]['coin'][0]['walletBalance'])
-    balance_ = balance
-    success_rate = []
-    for pnl in pnl_closed:
-        pnl_ = float(pnl["closedPnl"])
-        balance_ -= pnl_
-        if pnl_ > 0:
-            success_rate.append(pnl)
+    with open("balance.txt", "r", encoding="utf-8") as f:
+        balance_back = float(f.read())
     len_total_orders = len(pnl_closed)
     send_message_to_channel(
-        f"📑 Earned: {round(balance - balance_, 3)}$\n"
-        f"Percentage of changes: ~{round((balance / balance_ - 1) * 100, 3)}%\n"
+        f"📑 Earned: {round(balance_now - balance_back, 3)}$\n"
+        f"Percentage of changes: ~{round((balance_now / balance_back - 1) * 100, 3)}%\n"
         f"Success rate: {round(len(success_rate) / len_total_orders * 100, 3)}%\n"
         f"Total orders: {len_total_orders}\n"
-        f"Balance: {round(balance, 3)}$"
+        f"Balance: {round(balance_now, 3)}$"
     )
+    with open("balance.txt", "w", encoding="utf-8") as f:
+        f.write(str(balance_now))
 
 def main():
-    schedule.every().day.at("00:02").do(s_total_info)
+    schedule.every().day.at("00:30").do(s_total_info)
     while True:
         try:
             print(next(counter))
