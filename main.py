@@ -80,7 +80,7 @@ def s_total_info():
         f.write(str(balance_now))
 
 def main():
-    schedule.every().day.at("00:30").do(s_total_info)
+    schedule.every().day.at("00:02").do(s_total_info)
     while True:
         try:
             print(next(counter))
