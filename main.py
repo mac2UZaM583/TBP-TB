@@ -7,6 +7,7 @@ import traceback
 import datetime
 import schedule
 from pprint import pprint
+from numpy import float32 as nfloat32, array as narray, str_ as nstr_
 
 session = HTTP(
     demo=False if files_content['MODE'].upper() == 'NODEMO' else True,
@@ -69,12 +70,14 @@ def s_total_info():
     with open("balance.txt", "r", encoding="utf-8") as f:
         balance_back = float(f.read())
     len_total_orders = len(pnl_closed)
+    earned = round(balance_now - balance_back, 3)
     send_message_to_channel(
-        f"📑 Earned: {round(balance_now - balance_back, 3)}$\n"
+        f"📑 Earned: {earned}$\n"
         f"Percentage of changes: ~{round((balance_now / balance_back - 1) * 100, 3)}%\n"
         f"Success rate: {round(len(success_rate) / len_total_orders * 100, 3)}%\n"
         f"Total orders: {len_total_orders}\n"
-        f"Balance: {round(balance_now, 3)}$"
+        f"Balance: {round(balance_now, 3)}$\n"
+        "Ownership earn: {} / {} / {} $".format(*narray(list(map(lambda v: round(v / 100 * earned, 2), nfloat32(files_content["OWNERSHIP"].split()))), dtype=nstr_)),
     )
     with open("balance.txt", "w", encoding="utf-8") as f:
         f.write(str(balance_now))

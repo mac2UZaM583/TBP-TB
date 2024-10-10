@@ -8,7 +8,7 @@ def read_text_files_in_directory(arg_path):
             file_path = os.path.join(arg_path, filename)
             with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
-                files_content[filename.rstrip('.txt')] = content
+                files_content[filename.rstrip('.txt').upper()] = content
 
     return files_content
 
